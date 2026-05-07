@@ -1,0 +1,1 @@
+fly-away: Looks for atoms that fly away at after certain height with freezed selection at certain frame. Also, color codes newly added O atoms
