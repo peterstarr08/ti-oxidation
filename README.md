@@ -1,1 +1,1 @@
-This repository contains codes, snippets, modifiers for visualization in OVITO
+This repository contains codes, snippets, modifiers for visualization in OVITO that were used in titanium oxidation project
