@@ -7,4 +7,5 @@ name = "Ti_Oxidation"
 version = "0.1.0"
 
 [project.scripts]
+rdf_layer = "ti_oxidation.rdf_layer_corrected:main"
 
