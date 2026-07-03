@@ -1,0 +1,4 @@
+*.egg-info/
+/temp
+
+__pycache__/
