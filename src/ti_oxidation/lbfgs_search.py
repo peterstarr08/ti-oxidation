@@ -66,7 +66,7 @@ def main():
 
         variables.append(energy)
         print(f"Result: {variables}")
-        call.append(variables)
+        calls.append(variables)
        
         return energy 
 
