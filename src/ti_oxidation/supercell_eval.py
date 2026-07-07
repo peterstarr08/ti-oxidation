@@ -56,11 +56,15 @@ def main():
         if args.dry_run:
             print(f'Reading log file at {log_file}')
         else:
-            results = lammps_log_extract(log_file, ["energy"])
+            results = lammps_log_extract(log_file, ["energy", "atoms"])
             energy = float(results['energy'])
-            print(f"Energy is {energy} eV")
+            atoms = int(results['atoms'])
+            e_per_atom = energy/atoms
 
-            energy_list.append((k, energy))
+            print(f"Energy is {energy} eV")
+            print(f"Total atom: {atoms}\nEnergy per atoms is {e_per_atom} eV/atoms")
+
+            energy_list.append((k, energy, e_per_atom))
 
     print(energy_list)
 
@@ -70,9 +74,9 @@ def main():
         print(f"Will write to {run_log}")
     else:
         with open(run_log, 'w') as f:
-            f.write("k,energy")
-            for k, energy in energy_list:
-                f.write(f"\n{k},{energy}")
+            f.write("k,energy,energy_per_atom")
+            for k, energy, e_per_atom in energy_list:
+                f.write(f"\n{k},{energy},{e_per_atom}")
             
         print(f"Written to {run_log}")
 
