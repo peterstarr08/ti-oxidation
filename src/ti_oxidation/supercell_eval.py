@@ -38,7 +38,7 @@ def main():
             print(f"Would create a folder {_dir}")
             print(f"Would create a template file for k={k}")
         else:
-            _dir.mkdir(parent=True, exist_ok=True)
+            _dir.mkdir(parents=True, exist_ok=True)
             print(f"Created a dir at {_dir}")
 
             with open(_dir/"lammps.in", 'w') as f:
