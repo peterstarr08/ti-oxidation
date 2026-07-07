@@ -58,15 +58,15 @@ def main():
             f.write(current_template.content)
 
 
-        subprocess.run(["lmp", "-in", "lammps.in"], cwd=work_dir, check=True)
+        subprocess.run(["lmp", "-in", "lammps.in"], cwd=work_dir, stdout=subprocess.DEVNULL,check=True)
     
         result = lammps_log_extract(log_file, ["energy"])
 
         energy = float(result["energy"])
 
-        variable.append(energy)
+        variables.append(energy)
         print(f"Result: {variable}")
-        call.append(variable)
+        call.append(variables)
        
         return energy 
 
