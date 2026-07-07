@@ -8,6 +8,7 @@ version = "0.1.0"
 
 [project.scripts]
 rdf_layer = "ti_oxidation.rdf_layer_corrected:main"
+supercell_k = "ti_oxidation.supercell_eval:main"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
