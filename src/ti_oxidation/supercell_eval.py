@@ -71,7 +71,7 @@ def main():
     else:
         with open(run_log, 'w') as f:
             f.write("k,energy")
-            for k, energy in run_log:
+            for k, energy in energy_list:
                 f.write(f"\n{k},{energy}")
             
         print(f"Written to {run_log}")
