@@ -9,11 +9,14 @@ def main():
     parser = argparse.ArgumentParser(description="L-BFGS-B search for supercell")
 
     parser.add_argument("--template")
-    parser.add_argument("--cell_param", type=float, nargs='+')
-    parser.add_argument("--search", nargs='+')
+    parser.add_argument("--cell-param", type=float, nargs='+', required=True)
+    parser.add_argument("--search", nargs='+', choices=["a","b","c"], required=True)
     parser.add_argument("--rel-search", type=float, default=0.03)
 
     args = parser.parse_args()
+
+    if len(args.cell_param) != len(args.search):
+        raise ValueError(f"Cell parameters count and seach should match")
 
     temp_path = Path(args.template).resolve()
     template = LAMMPS_Input.from_file(temp_path)
@@ -23,28 +26,20 @@ def main():
 
     optim_args = []
     
-    lammps_arg = []
-    
-    for i, param in enumerate(['a', 'b', 'c']):
-        _cell_param = args.cell_param[i]
-        if param in args.search:
-            _lb = _cell_param * (1 - args.rel_search)
-            _ub = _cell_param * (1 + args.rel_search)
-            
-            optim_args.append((_cell_param, ( _lb, _ub)))
-            lammps_arg.append((param, _cell_param))
+    for param, guess in zip(args.search, args.cell_param):
+        _lb = guess * (1 - args.rel_search)
+        _ub = guess * (1 + args.rel_search)
+        
+        optim_args.append((guess, ( _lb, _ub)))
 
-            print(f"Search param: {param}\tGuess: {_cell_param}\tBounds: {[_lb, _ub]}")
-        else:
-            template = template.update_variable(param, _cell_param)
-            print(f"Fixed param: {param}\tValue: {_cell_param}")
+        print(f"Search param: {param}\tGuess: {guess}\tBounds: {[_lb, _ub]}")
 
     calls = []
 
     def objective(guess):
         current_template = template
         variables = []
-        for (param,_), x in zip(lammps_arg, guess):
+        for param, x in zip(args.search, guess):
             variables += [param, x]
             current_template = current_template.update_variable(param, x)
 
@@ -70,5 +65,5 @@ def main():
        
         return energy 
 
-    print(calls)
     lbfgsb_optimize(objective, *optim_args)
+    print(calls)
