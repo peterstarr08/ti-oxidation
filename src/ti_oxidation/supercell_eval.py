@@ -56,7 +56,7 @@ def main():
         if args.dry_run:
             print(f'Reading log file at {log_file}')
         else:
-            results = lammps_log_extract(log_file, "energy")
+            results = lammps_log_extract(log_file, ["energy"])
             energy = float(results['energy'])
             print(f"Energy is {energy} eV")
 
