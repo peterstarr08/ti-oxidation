@@ -10,7 +10,7 @@ def lbfgsb_optimize(objective, *args):
     for param, (lb, ub) in args:
         print(f"Initial guess: {param}\tLower bound: {lb}\tUpper bound: {ub}")
         guess.append(param)
-        bounds.append(((lb, ub))
+        bounds.append((lb, ub))
 
     print("Starting the optimization...")
     results = minimize(objective, guess, method='L-BFGS-B', bounds=bounds) 
