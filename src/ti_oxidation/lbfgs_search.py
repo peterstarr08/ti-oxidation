@@ -55,7 +55,7 @@ def main():
         log_file = work_dir / "log.lammps"
 
         with open(lammps_path, 'w') as f:
-            f.write(current_template)
+            f.write(current_template.content)
 
 
         subprocess.run(["lmp", "-in", "lammps.in"], cwd=work_dir, check=True)
