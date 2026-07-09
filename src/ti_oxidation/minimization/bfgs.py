@@ -18,6 +18,8 @@ def lbfgsb_optimize(objective, *args):
     print(f"\n\nOpimized param = {results.x}")
     print(f"\n\nOpimized energy = {results.fun} eV")
 
+    return [results.x, results.fun]
+
 
 
     
