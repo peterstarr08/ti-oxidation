@@ -12,7 +12,7 @@ def main():
     parser.add_argument("--cell-param", type=float, nargs='+', required=True)
     parser.add_argument("--search", nargs='+', choices=["a","b","c"], required=True)
     parser.add_argument("--rel-search", type=float, default=0.03)
-    parser.add_argument("--out", default=".")
+    parser.add_argument("--out", default="./lbfgsb_log.out")
 
     args = parser.parse_args()
 
@@ -66,7 +66,7 @@ def main():
        
         return energy 
 
-    lbfgsb_optimize(objective, *optim_args)
+    results = lbfgsb_optimize(objective, *optim_args)
     
     with open(args.out, 'w') as f:
         f.write(f"Template path {temp_path}\n")
@@ -75,5 +75,9 @@ def main():
         for call in calls:
             beaut = [str(x) for x in call]
             f.write(f"\n{" ".join(beaut)}")
+
+        f.write(f"\nCell param: {results[0]}")
+        f.write(f"\nPE: {results[1]} eV")
+
 
     print(f"File log written in {args.out}")
