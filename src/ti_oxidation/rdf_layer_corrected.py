@@ -40,8 +40,10 @@ def main():
     print(f"Max height {max_system_h}\t Min height {min_system_h}")
 
     height = max_system_h - min_system_h
+    
+    cell = np.diag(atoms.get_cell())
 
-    r_max = min(np.linalg.norm(atoms.cell[0]), np.linalg.norm(atoms.cell[1]), height)/2
+    r_max = min(cell[:2])/2         # Takes minimum of side because pbc is off in z dir and volume is corrected
 
     print(f'r_max {r_max}')
 
