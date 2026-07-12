@@ -14,7 +14,7 @@ def get_avg_local_density(system, r_max, h, max_h, A, B, nl_matrix):
     print(f'Found {A}\tAtoms: {len(A_index)}')
     print(f"Calculating local density of {B}")
     for i, indx in enumerate(A_index):
-        print(f"Calculating local desnity index {indx} - {i+1}/{len(A_index)}")
+#        print(f"Calculating local desnity index {indx} - {i+1}/{len(A_index)}")
         # Fetch all neighbors of indx inside r_max
         AB = nl_matrix[(nl_matrix[:,0]==indx) & (nl_matrix[:,2]<=r_max)]
 
