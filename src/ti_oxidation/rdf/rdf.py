@@ -64,7 +64,7 @@ def gAB(
     return acc_density/len(A_index)
 
 
-def rdf_layer_corrected(system, A, B, r_max, bin_size=200):
+def rdf_layer_corrected(system, A, B, r_max, bin_size=200, debug=False):
 
     rdf_bins = []
     dr = r_max/bin_size
@@ -85,7 +85,8 @@ def rdf_layer_corrected(system, A, B, r_max, bin_size=200):
     
     r_values = np.arange(bin_size) * dr 
     for i, r in enumerate(r_values):
-        print(f'Running g({r}) -  {i+1}/{len(r_values)}')
+        if debug:
+            print(f'Running g({r}) -  {i+1}/{len(r_values)}')
         rdf_bins.append(
             (i, r, gAB(r, dr, system, max_h, h, A, B, nl_matrix, avg_local_density_B))        
         )
