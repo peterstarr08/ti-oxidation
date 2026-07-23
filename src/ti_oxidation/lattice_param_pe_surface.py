@@ -12,7 +12,7 @@ def arg_parse():
     parser.add_argument("--range", type=float, default=0.03)
     parser.add_argument("--steps", type=float, default=0.005)
     parser.add_argument("--lattice", nargs='+', choices=['a', 'b', 'c'])
-    parser.add_argument("--ftol", type=float, required=True, default=0.025)
+    parser.add_argument("--override", nargs='+', type=float)
     parser.add_argument("--out-dir", default='./box_lattice_calc')
 
     return parser.parse_args()
@@ -43,9 +43,17 @@ def main():
 
     ranges = []
 
-    for param, value in lattice_param:
-        lx = value*(1-args.range)
-        hx = value*(1+args.range)
+    if len(args.override) != 0 and len(args.override)!=4:
+        raise RuntimeError(f"Need exactly 4 param (lx1 hx1 lx2 hx2) to override")
+
+    for i, (param, value) in enumerate(lattice_param):
+        if len(args.override)==4:
+            lx = args.override[2*i]
+            hx = args.override[2*i+1]
+            print("Overriding param for {parm}. Replaced with {lx} {hx}")
+        else:
+            lx = value*(1-args.range)
+            hx = value*(1+args.range)
         steps = value*args.steps
         gen_range = np.arange(lx, hx, steps)
         ranges.append((param ,gen_range))
