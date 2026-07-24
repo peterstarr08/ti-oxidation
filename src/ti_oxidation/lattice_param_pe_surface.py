@@ -12,7 +12,7 @@ def arg_parse():
     parser.add_argument("--range", type=float, default=0.03)
     parser.add_argument("--steps", type=float, default=0.005)
     parser.add_argument("--lattice", nargs='+', choices=['a', 'b', 'c'])
-    parser.add_argument("--override", nargs='+', type=float)
+    parser.add_argument("--override", nargs='*', type=float, default=[])
     parser.add_argument("--out-dir", default='./box_lattice_calc')
 
     return parser.parse_args()
