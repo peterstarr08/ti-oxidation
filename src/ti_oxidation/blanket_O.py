@@ -10,6 +10,7 @@ def arg_parser():
     parser.add_argument("--atoms", type=int)
     parser.add_argument("--d_min", type=float, default=1.8)
     parser.add_argument("--out", required=True)
+    parser.add_argument("--seed", type=int, default=100)
     return parser.parse_args()
 
 def height_at(tree, x0, y0, xy, z, d): # (x0, y0) is a single mesh point
@@ -66,7 +67,7 @@ def main():
     sample_O_p = np.column_stack([mesh_p, heights])
 
     # Adding O atoms
-    rng = np.random.default_rng(seed=69)
+    rng = np.random.default_rng(seed=args.seed)
     choices = rng.choice(sample_O_p, size=count, axis=0, replace=False)
 
     for choice in choices:
