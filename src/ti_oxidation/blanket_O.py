@@ -1,4 +1,5 @@
 from ase.io import read, write
+from scipy.stats.qmc import PoissonDisk
 from scipy.spatial import cKDTree
 import numpy as np
 from ase import Atom
@@ -26,8 +27,10 @@ def height_at(tree, x0, y0, xy, z, d): # (x0, y0) is a single mesh point
 
 def main():
     args = arg_parser()
+    rng = np.random.default_rng(seed=args.seed)
     d = args.d_min
     count = args.atoms
+    print("Reading atoms...")
     atoms = read(args.path, '0', format='lammps-data')
     atoms.wrap()    # Required to prevent weird behavior when duplicatin
 
@@ -55,20 +58,31 @@ def main():
     print("Done")
 
 
-    # Constructing meshes
-    mesh_x = np.arange(0, lx, d)
-    mesh_y = np.arange(0, ly, d)
+    # # Constructing meshes
+    # mesh_x = np.arange(0, lx, d)
+    # mesh_y = np.arange(0, ly, d)
 
-    grid = np.meshgrid(mesh_x, mesh_y, indexing='ij')
-    mesh_p = np.stack(grid, axis=-1).reshape(-1, 2)
+    # grid = np.meshgrid(mesh_x, mesh_y, indexing='ij')
+    # mesh_p = np.stack(grid, axis=-1).reshape(-1, 2)
+
+    # Constructing using Poisson Disk
+    l_b = [0,0]
+    u_b = [lx,ly]
+    engine = PoissonDisk(d=2, radius=args.d_min, l_bounds=l_b, u_bounds=u_b, rng = rng)
+    print("Filling space using Poisson Disk")
+    mesh_p = engine.fill_space()
+    print(f"Done... Sampling {count} points")
+    mesh_p = rng.choice(mesh_p, size=count, axis=0, replace=False)
+    if len(mesh_p)!=args.atoms:
+        raise RuntimeError("Can't add given atoms in this much space fofr given radius")
 
     # Stuff
     heights = np.array([height_at(kdTree, x0, y0, rep_xy, rep_z, d) for x0, y0 in mesh_p])
     sample_O_p = np.column_stack([mesh_p, heights])
 
     # Adding O atoms
-    rng = np.random.default_rng(seed=args.seed)
-    choices = rng.choice(sample_O_p, size=count, axis=0, replace=False)
+    # choices = rng.choice(sample_O_p, size=count, axis=0, replace=False)
+    choices = sample_O_p
 
     for choice in choices:
         atoms.append(Atom('O', choice))
