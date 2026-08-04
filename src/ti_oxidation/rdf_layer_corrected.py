@@ -4,7 +4,7 @@ from pathlib import Path
 from ase.io import read, write
 from ase import Atoms
 
-from ti_oxidation.rdf.rdf import rdf_layer_corrected
+from ti_oxidation.rdf.rdf_optimized import rdf_layer_corrected
 from ti_oxidation.rdf.writer import write_rdf
 
 def main():
@@ -17,7 +17,7 @@ def main():
     parser.add_argument("--B", default='O')
 
     parser.add_argument('--margin_top', type=float, default=0.0)
-    parser.add_argument('--margin_bottom', type=float, default=1.0)
+    parser.add_argument('--margin_bottom', type=float, default=0.0)
 
     parser.add_argument('--format', default="lammps-data")
 
@@ -32,7 +32,9 @@ def main():
     input_path = Path(args.path).resolve()
     out_path = input_path.parents[0] / f'{input_path.stem}_{args.A}_{args.B}_{args.margin_top}_{args.margin_bottom}_{args.nbins}.csv'
 
-    filter_O = Atoms([atom for atom in atoms if atom.symbol==args.B])
+    #filter_O = Atoms([atom for atom in atoms if atom.symbol==args.B])
+    filter_O = atoms
+
 
     max_system_h = np.max(filter_O.positions[:,2]) + args.margin_top
     min_system_h = np.min(filter_O.positions[:,2]) - args.margin_bottom
@@ -48,7 +50,7 @@ def main():
     print(f'r_max {r_max}')
 
 
-    del atoms[[atom.index for atom in atoms if (atom.position[2]<min_system_h or atom.position[2]>max_system_h)]]
+    # del atoms[[atom.index for atom in atoms if (atom.position[2]<min_system_h or atom.position[2]>max_system_h)]]
     atoms.pbc = [True, True, False]
 
     if args.debug:
