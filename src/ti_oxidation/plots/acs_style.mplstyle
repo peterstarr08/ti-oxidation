@@ -1,0 +1,33 @@
+# --- Typography & Font ---
+font.size: 8.0
+font.family: sans-serif
+font.sans-serif: Arial, Helvetica, DejaVu Sans
+
+# --- Figure Dimensions ---
+# 3.25 inches matches a standard 1-column layout in ACS journals
+figure.figsize: 3.25, 3.25
+figure.dpi: 300
+figure.facecolor: white
+
+# --- Axes & Borders ---
+axes.linewidth: 1.0
+axes.labelsize: 8.0
+axes.titlesize: 9.0
+axes.spines.top: True
+axes.spines.right: True
+
+# --- Ticks (Pointed Inward) ---
+xtick.direction: in
+ytick.direction: in
+xtick.major.size: 4.0
+ytick.major.size: 4.0
+xtick.labelsize: 7.0
+ytick.labelsize: 7.0
+
+# --- Lines & Markers ---
+lines.linewidth: 1.5
+lines.markersize: 4.0
+
+# --- Legend ---
+legend.fontsize: 7.0
+legend.frameon: False
