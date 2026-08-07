@@ -19,7 +19,7 @@ def detect_layers(atoms, filter_on='Ti', min_clust_size=192*3//4, max_clust_size
     hfd = HDBSCAN(min_cluster_size=min_clust_size, max_cluster_size=max_clust_size)
     hfd.fit(z_coords)
     labels = hfd.labels_
-    print(f"Unique labels = {np.unique(labels)}")
+    # print(f"Unique labels = {np.unique(labels)}")
     
     # Collecting indices of atoms from layers
     layers = []

@@ -83,6 +83,13 @@ def create_md_parser(subparsers):
         help='Temperature reference line in K (default: 973 K)'
     )
     md_parser.add_argument(
+        '--timestep',
+        type=float,
+        default=1.0,
+        metavar='PS',
+        help='Picoseconds per LAMMPS timestep (default: 1.0 ps)'
+    )
+    md_parser.add_argument(
         '--xmin',
         type=int,
         default=None,
@@ -201,7 +208,7 @@ def main():
         epilog='Examples:\n'
                '  python plot.py gr data1.csv data2.csv\n'
                '  python plot.py md log1.txt log2.txt -i --out-dir plots_sim\n'
-               '  python plot.py md --mark-temp 1000 log.txt\n'
+               '  python plot.py md --mark-temp 1000 --timestep 0.001 log.txt\n'
                '  python plot.py fluct log.txt --step-min 1000 --step-max 50000\n'
                '  python plot.py fluct log.txt -i --out-dir fluct_analysis\n'
                '  python plot.py lcurve lcurve.out\n'

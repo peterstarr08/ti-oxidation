@@ -3,7 +3,8 @@ LAMMPS MD log plotter.
 Parses merged LAMMPS logs and generates publication-quality plots with ACS styling.
 
 Usage in dispatcher:
-  python plot.py md logfile1 logfile2 ... --out-dir plots_md --mark-temp 1000
+  python plot.py md logfile1 logfile2 ... --out-dir plots_md --mark-temp 1000 --timestep 0.001
+  (where --timestep is in picoseconds per LAMMPS timestep, default 1.0 ps)
 """
 import argparse
 import matplotlib.pyplot as plt
@@ -108,7 +109,7 @@ def parse_merged_log(file_path):
 
 
 def trim_data(steps, poteng, poteng_pa, temperature, xmin, xmax):
-    """Trim all arrays to [xmin, xmax] range."""
+    """Trim all arrays to [xmin, xmax] range (in steps, before time conversion)."""
     t_s, t_p, t_pa, t_t = [], [], [], []
 
     for s, p, pa, t in zip(steps, poteng, poteng_pa, temperature):
@@ -122,13 +123,14 @@ def trim_data(steps, poteng, poteng_pa, temperature, xmin, xmax):
 
 
 # --- Plotting ---
-def plot_individual(steps, poteng, poteng_pa, temperature, output_dir, label, ps_per_frame, mark_temp):
+def plot_individual(steps, poteng, poteng_pa, temperature, output_dir, label, timestep_ps, mark_temp):
     """
     Save three individual subplots (poteng, poteng_pa, temperature) as separate PNGs.
+    timestep_ps: picoseconds per LAMMPS timestep
     """
     os.makedirs(output_dir, exist_ok=True)
     
-    time_ps = [s * ps_per_frame for s in steps]
+    time_ps = [s * timestep_ps for s in steps]
     
     # Potential Energy
     fig, ax = plt.subplots(figsize=(8, 6))
@@ -166,13 +168,14 @@ def plot_individual(steps, poteng, poteng_pa, temperature, output_dir, label, ps
     print(f"  Saved: {out_file}")
 
 
-def plot_combined_per_file(steps, poteng, poteng_pa, temperature, output_dir, label, ps_per_frame, mark_temp):
+def plot_combined_per_file(steps, poteng, poteng_pa, temperature, output_dir, label, timestep_ps, mark_temp):
     """
     Save combined 3-subplot figure for a single file.
+    timestep_ps: picoseconds per LAMMPS timestep
     """
     os.makedirs(output_dir, exist_ok=True)
     
-    time_ps = [s * ps_per_frame for s in steps]
+    time_ps = [s * timestep_ps for s in steps]
     
     fig, axs = plt.subplots(3, 1, figsize=(8, 10))
     
@@ -195,18 +198,21 @@ def plot_combined_per_file(steps, poteng, poteng_pa, temperature, output_dir, la
     print(f"  Saved: {out_file}")
 
 
-def plot_all_combined(all_data, output_dir, ps_per_frame, mark_temp, subplot_titles=None):
+def plot_all_combined(all_data, output_dir, timestep_ps, mark_temp, subplot_titles=None):
     """
     Save comparison plots for all files (3 subplots, one line per file).
+    Also saves individual subplot PNGs.
+    timestep_ps: picoseconds per LAMMPS timestep
     subplot_titles: optional dict with keys 'poteng', 'poteng_pa', 'temperature'
     """
     os.makedirs(output_dir, exist_ok=True)
     
+    # --- Combined plot (all 3 subplots in 1 PNG) ---
     fig, axs = plt.subplots(3, 1, figsize=(10, 10))
     
     # Potential Energy
     for label, steps, poteng, _, _ in all_data:
-        time_ps = [s * ps_per_frame for s in steps]
+        time_ps = [s * timestep_ps for s in steps]
         axs[0].plot(time_ps, poteng, label=label, linewidth=1.5)
     
     axs[0].set_ylabel("Potential Energy (eV)")
@@ -216,7 +222,7 @@ def plot_all_combined(all_data, output_dir, ps_per_frame, mark_temp, subplot_tit
     
     # Per Atom
     for label, steps, _, poteng_pa, _ in all_data:
-        time_ps = [s * ps_per_frame for s in steps]
+        time_ps = [s * timestep_ps for s in steps]
         axs[1].plot(time_ps, poteng_pa, label=label, linewidth=1.5)
     
     axs[1].set_ylabel("Potential Energy per Atom (eV/atom)")
@@ -226,7 +232,7 @@ def plot_all_combined(all_data, output_dir, ps_per_frame, mark_temp, subplot_tit
     
     # Temperature
     for label, steps, _, _, temperature in all_data:
-        time_ps = [s * ps_per_frame for s in steps]
+        time_ps = [s * timestep_ps for s in steps]
         axs[2].plot(time_ps, temperature, label=label, linewidth=1.5)
     
     axs[2].axhline(y=mark_temp, color='r', linestyle='--', linewidth=1.5, label=f'{mark_temp} K')
@@ -238,6 +244,59 @@ def plot_all_combined(all_data, output_dir, ps_per_frame, mark_temp, subplot_tit
     
     plt.tight_layout()
     out_file = os.path.join(output_dir, "all_combined_all_subplots.png")
+    plt.savefig(out_file, dpi=300)
+    plt.close()
+    print(f"  Saved: {out_file}")
+    
+    # --- Individual subplot PNGs ---
+    # Potential Energy
+    fig, ax = plt.subplots(figsize=(10, 6))
+    for label, steps, poteng, _, _ in all_data:
+        time_ps = [s * timestep_ps for s in steps]
+        ax.plot(time_ps, poteng, label=label, linewidth=1.5)
+    
+    ax.set_xlabel("Time (ps)")
+    ax.set_ylabel("Potential Energy (eV)")
+    if subplot_titles and subplot_titles.get('poteng'):
+        ax.set_title(subplot_titles['poteng'])
+    ax.legend()
+    plt.tight_layout()
+    out_file = os.path.join(output_dir, "all_poteng.png")
+    plt.savefig(out_file, dpi=300)
+    plt.close()
+    print(f"  Saved: {out_file}")
+    
+    # Potential Energy per Atom
+    fig, ax = plt.subplots(figsize=(10, 6))
+    for label, steps, _, poteng_pa, _ in all_data:
+        time_ps = [s * timestep_ps for s in steps]
+        ax.plot(time_ps, poteng_pa, label=label, linewidth=1.5)
+    
+    ax.set_xlabel("Time (ps)")
+    ax.set_ylabel("Potential Energy per Atom (eV/atom)")
+    if subplot_titles and subplot_titles.get('poteng_pa'):
+        ax.set_title(subplot_titles['poteng_pa'])
+    ax.legend()
+    plt.tight_layout()
+    out_file = os.path.join(output_dir, "all_poteng_pa.png")
+    plt.savefig(out_file, dpi=300)
+    plt.close()
+    print(f"  Saved: {out_file}")
+    
+    # Temperature
+    fig, ax = plt.subplots(figsize=(10, 6))
+    for label, steps, _, _, temperature in all_data:
+        time_ps = [s * timestep_ps for s in steps]
+        ax.plot(time_ps, temperature, label=label, linewidth=1.5)
+    
+    ax.axhline(y=mark_temp, color='r', linestyle='--', linewidth=1.5, label=f'{mark_temp} K')
+    ax.set_xlabel("Time (ps)")
+    ax.set_ylabel("Temperature (K)")
+    if subplot_titles and subplot_titles.get('temperature'):
+        ax.set_title(subplot_titles['temperature'])
+    ax.legend()
+    plt.tight_layout()
+    out_file = os.path.join(output_dir, "all_temperature.png")
     plt.savefig(out_file, dpi=300)
     plt.close()
     print(f"  Saved: {out_file}")
@@ -278,22 +337,6 @@ def interactive_rename(logfiles):
     return labels
 
 
-def interactive_ps_per_frame():
-    """Ask user for picoseconds per frame (timestep)."""
-    while True:
-        try:
-            ps_input = input("\nPicoseconds per timestep (default=1.0 ps/frame): ").strip()
-            if not ps_input:
-                return 1.0
-            ps_per_frame = float(ps_input)
-            if ps_per_frame <= 0:
-                print("  Error: Must be positive. Try again.")
-                continue
-            return ps_per_frame
-        except ValueError:
-            print("  Error: Invalid number. Try again.")
-
-
 def interactive_subplot_titles():
     """Ask user for optional subplot titles."""
     titles = {}
@@ -329,13 +372,15 @@ def run(args):
     args.files = list of LAMMPS log files
     args.out_dir = output directory
     args.mark_temp = temperature reference line (default 973 K)
-    args.xmin, args.xmax = optional trimming range
+    args.timestep = picoseconds per LAMMPS timestep (default 1.0 ps)
+    args.xmin, args.xmax = optional trimming range (in timesteps)
     args.interactive = bool
     """
     
     logfiles = args.files
     out_dir = args.out_dir
     mark_temp = args.mark_temp
+    timestep_ps = getattr(args, 'timestep', 1.0)
     xmin = getattr(args, 'xmin', None)
     xmax = getattr(args, 'xmax', None)
     interactive_mode = getattr(args, 'interactive', False)
@@ -345,18 +390,16 @@ def run(args):
     print(f"{'='*60}")
     print(f"Plotting style: {_STYLE_APPLIED}\n")
     
-    # Interactive mode: ask for custom labels, ps_per_frame, and subplot titles
+    # Interactive mode: ask for custom labels and subplot titles
     if interactive_mode:
         labels = interactive_rename(logfiles)
-        ps_per_frame = interactive_ps_per_frame()
         subplot_titles = interactive_subplot_titles()
     else:
         # Use defaults
         labels = {os.path.basename(lf): os.path.basename(lf).split('.')[0] for lf in logfiles}
-        ps_per_frame = 1.0
         subplot_titles = None
     
-    print(f"\nPicoseconds per timestep: {ps_per_frame} ps/frame")
+    print(f"\nTimestep: {timestep_ps} ps per LAMMPS step")
     print(f"Temperature reference: {mark_temp} K")
     print(f"Output directory: {out_dir}\n")
     
@@ -384,7 +427,7 @@ def run(args):
         # Compute per-atom before trimming
         poteng_pa = [p / atoms for p in poteng]
         
-        # Trim
+        # Trim (in terms of timesteps)
         steps, poteng, poteng_pa, temperature = trim_data(
             steps, poteng, poteng_pa, temperature,
             xmin, xmax
@@ -393,16 +436,23 @@ def run(args):
         label = labels[basename]
         all_data.append((label, steps, poteng, poteng_pa, temperature))
         
+        # Create subdirectory for this log file
+        file_subdir = os.path.join(out_dir, label)
+        os.makedirs(file_subdir, exist_ok=True)
+        
         # Individual plots (3 separate PNGs)
-        plot_individual(steps, poteng, poteng_pa, temperature, out_dir, label, ps_per_frame, mark_temp)
+        plot_individual(steps, poteng, poteng_pa, temperature, file_subdir, label, timestep_ps, mark_temp)
         
         # Combined plot (3 subplots in 1 PNG)
-        plot_combined_per_file(steps, poteng, poteng_pa, temperature, out_dir, label, ps_per_frame, mark_temp)
+        plot_combined_per_file(steps, poteng, poteng_pa, temperature, file_subdir, label, timestep_ps, mark_temp)
     
     # All files combined (3 subplots, all lines on each)
     if all_data:
         print(f"\nGenerating comparison plots...")
-        plot_all_combined(all_data, out_dir, ps_per_frame, mark_temp, subplot_titles)
+        # Create subdirectory for merged comparison plots
+        merged_subdir = os.path.join(out_dir, "all_merged")
+        os.makedirs(merged_subdir, exist_ok=True)
+        plot_all_combined(all_data, merged_subdir, timestep_ps, mark_temp, subplot_titles)
         print(f"\n{'='*60}")
         print(f"SUCCESS: All plots saved to: {out_dir}")
         print(f"{'='*60}\n")
@@ -412,11 +462,12 @@ def run(args):
 
 
 if __name__ == "__main__":
-    # For standalone testing
+    # For standalone testing (typically called via dispatcher)
     parser = argparse.ArgumentParser(description="LAMMPS MD log plotter")
     parser.add_argument("files", nargs='+', help="LAMMPS log files")
     parser.add_argument("--out-dir", default="plots_md", help="Output directory")
     parser.add_argument("--mark-temp", type=float, default=973, help="Temperature reference line (default: 973 K)")
+    parser.add_argument("--timestep", type=float, default=1.0, help="Picoseconds per LAMMPS timestep (default: 1.0 ps)")
     parser.add_argument("--xmin", type=int, default=None, help="Trim: min timestep")
     parser.add_argument("--xmax", type=int, default=None, help="Trim: max timestep")
     parser.add_argument("-i", "--interactive", action='store_true', help="Interactive mode")

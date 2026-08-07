@@ -5,6 +5,13 @@ import time
 
 from .volume import get_effective_volume, get_effective_shell_volume, get_sphere_volume
 
+def print_info(atoms, A, B, r_max, dr, bins, bin_size, method):
+    print("================= RDF=================")
+    print(f"Length {len(atoms)} {A}-{B} pair method {method}")
+    print(f"Cell {np.diag(atoms.get_cell())} PBC {atoms.pbc}")
+    print(f"Bin size {bin_size} r_max {r_max} dr {dr}")
+    print(f"{bins}")
+
 def gen_nl(atoms, cutoff):
     _nl = neighbor_list('ijd', a=atoms, cutoff=cutoff, self_interaction=False)
     return np.asarray(_nl).transpose() # [[i,j, d],...]
@@ -50,6 +57,7 @@ def rdf_layer_corrected(atoms, A, B, r_max, bin_size=200):
     atoms.pbc = [True, True, False]
 
     max_h, min_h, slab_h = get_slab_stat(atoms)
+    print(f"Slah max {max_h} min {min_h} slab_h {slab_h}")
     symbols = np.array(atoms.get_chemical_symbols())
     
     A_indices = np.where(np.array(symbols)==A)[0]
@@ -58,6 +66,8 @@ def rdf_layer_corrected(atoms, A, B, r_max, bin_size=200):
     # Defining bins
     dr = r_max/bin_size
     bins = np.arange(bin_size + 1) * dr
+
+    print_info(atoms, A, B, r_max, dr, bins, bin_size, method="Layer resolved")
 
     # Processing NL
     print("Generating NL")
@@ -91,6 +101,9 @@ def regular_rdf(atoms, A, B, r_max, bin_size=200):
     # Defining bins
     dr = r_max/bin_size
     bins = np.arange(bin_size + 1) * dr
+
+    print_info(atoms, A, B, r_max, dr, bins, bin_size, method="Regular rdf")
+
 
     # Processing NL
     print("Generating NL")

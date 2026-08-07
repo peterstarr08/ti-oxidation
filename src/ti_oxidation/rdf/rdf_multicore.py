@@ -22,22 +22,26 @@ def process_one_frame(index, frame, A, B, bin_size, save_dir, regular_gr=False, 
         path.mkdir(parents=True, exist_ok=True)
         write(path/f"{index}.extxyz", frame)
     
-    if regular_gr:
-        r_max = np.min(np.diag(frame.get_cell()))/2
-        if r_max > 10.0:
-            print("Warning: System might be too large. Using 10 angs cutoff")
-            r_max = 10.0
-    else:
-        if use_slab_height:
-            _max = np.max(frame.positions[:,2]) 
-            _min = np.min(frame.positions[:,2])
-            r_max = (_max-_min)
-            print("Using slab height to calculate r_max")
-        else:
-            print("Using a and b lattice length for layer resolved rdf")
-            r_max = np.min(np.diag(frame.get_cell())[:2])/2
+    # if regular_gr:
+    #     r_max = np.min(np.diag(frame.get_cell()))/2
+    #     if r_max > 10.0:
+    #         print("Warning: System might be too large. Using 10 angs cutoff")
+    #         r_max = 10.0
+    # else:
+    #     if use_slab_height:
+    #         _max = np.max(frame.positions[:,2]) 
+    #         _min = np.min(frame.positions[:,2])
+    #         r_max = (_max-_min)
+    #         print("Using slab height to calculate r_max")
+    #     else:
+    #         print("Using a and b lattice length for layer resolved rdf")
+    #         r_max = np.min(np.diag(frame.get_cell())[:2])/2
     
-    print(f'Cell: {np.diag(frame.get_cell())} r_max {r_max}')
+    # print(f'Cell: {np.diag(frame.get_cell())} r_max {r_max}')
+
+    r_max = 10
+
+    print("Temporary warning: 10 A cutoff fixed for all settings")
 
     return run(frame, A, B, r_max, bin_size, regular_gr)
 

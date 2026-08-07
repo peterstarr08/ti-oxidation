@@ -23,6 +23,7 @@ def main():
     parser.add_argument('--regular-gr', action='store_true') 
     parser.add_argument('--use-slab-height', '-ush', action='store_true')
     parser.add_argument('--filter', default='0')
+    parser.add_argument('--out','-o', required=True)
     parser.add_argument('--cores', type=int, default=1)
     
 
@@ -32,7 +33,7 @@ def main():
     print(f"Read {len(db)} frames")
     
     input_path = Path(args.path).resolve()
-    out_path = input_path.parents[0] / f'{input_path.stem}_rdf_lr.csv'
+    out_path = input_path.parents[0] / f'{args.out}.csv'
     
     rdf, bins = rdf_frames(db, args.A, args.B, args.nbins, args.cores, args.debug_dir, args.regular_gr, args.use_slab_height)
 
