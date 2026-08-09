@@ -24,6 +24,7 @@ def main():
     parser.add_argument('--use-slab-height', '-ush', action='store_true')
     parser.add_argument('--filter', default='0')
     parser.add_argument('--out','-o', required=True)
+    parser.add_argument('--r-max', type=float, default=-1)
     parser.add_argument('--cores', type=int, default=1)
     
 
@@ -35,7 +36,7 @@ def main():
     input_path = Path(args.path).resolve()
     out_path = input_path.parents[0] / f'{args.out}.csv'
     
-    rdf, bins = rdf_frames(db, args.A, args.B, args.nbins, args.cores, args.debug_dir, args.regular_gr, args.use_slab_height)
+    rdf, bins = rdf_frames(db, args.A, args.B, args.nbins, args.cores, args.debug_dir, args.regular_gr, args.use_slab_height, args.r_max)
 
     write_rdf(out_path, rdf, bins) 
 

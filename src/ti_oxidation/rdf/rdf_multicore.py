@@ -9,7 +9,7 @@ from ti_oxidation.clustering.cluster_layer import detect_layers
 def delete_layers(layers, atoms):
     del atoms[np.concatenate(layers)]
 
-def process_one_frame(index, frame, A, B, bin_size, save_dir, regular_gr=False, use_slab_height=False):
+def process_one_frame(index, frame, A, B, bin_size, save_dir, regular_gr=False, use_slab_height=False, r_max=-1):
     if not regular_gr:
         print("Deleting bottom 13 layers")
         layers = detect_layers(frame)
@@ -38,14 +38,16 @@ def process_one_frame(index, frame, A, B, bin_size, save_dir, regular_gr=False, 
     #         r_max = np.min(np.diag(frame.get_cell())[:2])/2
     
     # print(f'Cell: {np.diag(frame.get_cell())} r_max {r_max}')
+    if r_max==-1:
+        _r_max = 10
+        print("Temporary warning: 10 A cutoff fixed for all settings")
+    else:
+        _r_max = r_max
+        print(f"r_max = {_r_max}")
 
-    r_max = 10
+    return run(frame, A, B, _r_max, bin_size, regular_gr)
 
-    print("Temporary warning: 10 A cutoff fixed for all settings")
-
-    return run(frame, A, B, r_max, bin_size, regular_gr)
-
-def rdf_frames(frames, A, B, bin_size, ncores, save_dir = None, regular_gr=False, use_slab_height=False):
+def rdf_frames(frames, A, B, bin_size, ncores, save_dir = None, regular_gr=False, use_slab_height=False, r_max=-1):
     with ProcessPoolExecutor(max_workers=ncores) as pool:
         futures = [pool.submit(
             process_one_frame, 
@@ -56,7 +58,8 @@ def rdf_frames(frames, A, B, bin_size, ncores, save_dir = None, regular_gr=False
             bin_size=bin_size, 
             save_dir=save_dir,
             regular_gr=regular_gr,
-            use_slab_height=use_slab_height
+            use_slab_height=use_slab_height,
+            r_max=r_max
             ) for i, frame in enumerate(frames)]
         results = []
         bins = None
