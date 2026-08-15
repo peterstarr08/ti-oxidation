@@ -96,7 +96,7 @@ def prompt_for_renames(file_data_list):
 
     renamed_list = []
     for filename, r_values, g_values, base_name in file_data_list:
-        new_name = input(f"  New name for '{base_name}' (blank = keep as is): ").strip()
+        new_name = input(f"  New name for '{filename}' (blank = keep as is): ").strip()
         if new_name:
             renamed_list.append((filename, r_values, g_values, new_name))
         else:
