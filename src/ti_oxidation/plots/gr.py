@@ -215,7 +215,7 @@ def plot_individual_files(file_data_list, precision=2, r_cutoff=None):
     return figures
 
 
-def plot_all_together(file_data_list, precision=2, title_label="Comparison of All Files", r_cutoff=None):
+def plot_all_together(file_data_list, precision=2, title_label="Comparison of All Files", r_cutoff=None, gr_cutoff=None):
     """
     Plot all files together in a single figure for comparison.
     Returns the combined figure.
@@ -224,7 +224,8 @@ def plot_all_together(file_data_list, precision=2, title_label="Comparison of Al
         file_data_list: List of (filename, r_values, g_values, label) tuples
         precision: Decimal precision for axis labels
         title_label: Title for the comparison plot
-        r_cutoff: Optional cutoff in Angstrom; data beyond this is excluded
+        r_cutoff: Optional cutoff in Angstrom; data beyond this is excluded (x-axis)
+        gr_cutoff: Optional g(r) y-axis cutoff; y-axis view is limited to this value
     """
     if not file_data_list:
         return None
@@ -266,6 +267,10 @@ def plot_all_together(file_data_list, precision=2, title_label="Comparison of Al
 
     ax.legend(loc='best', fontsize=9)
 
+    # Apply g(r) y-axis cutoff if specified (COMPARISON PLOT ONLY)
+    if gr_cutoff is not None:
+        ax.set_ylim(bottom=0, top=gr_cutoff)
+
     fig.tight_layout()
 
     # Sanitize filename
@@ -277,12 +282,15 @@ def plot_all_together(file_data_list, precision=2, title_label="Comparison of Al
     return fig
 
 
-def interactive_menu(file_data_list, individual_figures, combined_figure, precision=2, r_cutoff=None, comparison_label="Comparison of All Files"):
+def interactive_menu(file_data_list, individual_figures, combined_figure, precision=2, r_cutoff=None, gr_cutoff=None, comparison_label="Comparison of All Files"):
     """
     Interactive menu for inspecting multiple plots at once.
     List all plots (1 to n for individual, n+1 for combined).
     User enters space-separated integers to open selected plots.
     Plots are smaller in interactive mode for easy comparison.
+    
+    Args:
+        gr_cutoff: Optional g(r) y-axis cutoff for comparison plot only
     """
     # Close all existing figures
     plt.close('all')
@@ -379,6 +387,11 @@ def interactive_menu(file_data_list, individual_figures, combined_figure, precis
                 setup_detailed_axes(ax, all_r, precision)
                 ax.set_title(f'$g(r)$ vs $r$ - {comparison_label}')
                 ax.legend(loc='best', fontsize=8)
+                
+                # Apply g(r) y-axis cutoff to interactive comparison plot
+                if gr_cutoff is not None:
+                    ax.set_ylim(bottom=0, top=gr_cutoff)
+                
                 fig.tight_layout()
                 created_count += 1
             else:
@@ -419,6 +432,22 @@ def prompt_for_r_cutoff():
         return None
 
 
+def prompt_for_gr_cutoff():
+    """
+    Ask user for optional g(r) y-axis cutoff for comparison plot.
+    Returns float or None.
+    """
+    cutoff_str = input("\nOptional g(r) y-axis cutoff for comparison plot (blank = no cutoff): ").strip()
+    if not cutoff_str:
+        return None
+    try:
+        cutoff = float(cutoff_str)
+        return cutoff
+    except ValueError:
+        print("Warning: invalid g(r) cutoff value, ignoring.")
+        return None
+
+
 def run(args):
     """
     Main entry point for g(r) plotting. Called by the CLI wrapper.
@@ -429,7 +458,8 @@ def run(args):
       - no_individual: bool, skip individual plots
       - no_comparison: bool, skip comparison plot
       - interactive: bool, show interactive menu
-      - r_cutoff: float or None, cutoff in Angstrom
+      - r_cutoff: float or None, cutoff in Angstrom (x-axis)
+      - gr_cutoff: float or None, g(r) y-axis cutoff for comparison plot only
     """
     report_style()
     
@@ -449,10 +479,13 @@ def run(args):
 
     file_data_list = prompt_for_renames(file_data_list)
     r_cutoff = prompt_for_r_cutoff()
+    gr_cutoff = prompt_for_gr_cutoff()
 
     print(f"\nProcessing {len(file_data_list)} file(s) with precision: {args.precision} decimal places...")
     if r_cutoff is not None:
-        print(f"r cutoff: {r_cutoff} Å")
+        print(f"r cutoff (x-axis): {r_cutoff} Å")
+    if gr_cutoff is not None:
+        print(f"g(r) cutoff (y-axis, comparison plot only): {gr_cutoff}")
 
     individual_figures = {}
     combined_figure = None
@@ -465,10 +498,10 @@ def run(args):
     if not args.no_comparison:
         print("\nCreating comparison plot...")
         comparison_label = prompt_for_comparison_label()
-        combined_figure = plot_all_together(file_data_list, args.precision, comparison_label, r_cutoff)
+        combined_figure = plot_all_together(file_data_list, args.precision, comparison_label, r_cutoff, gr_cutoff)
 
     print("\nDone! All plots saved as HQ PNG files.")
 
     if args.interactive:
         interactive_menu(file_data_list, individual_figures, combined_figure, 
-                        args.precision, r_cutoff, comparison_label or "Comparison of All Files")
+                        args.precision, r_cutoff, gr_cutoff, comparison_label or "Comparison of All Files")
