@@ -83,6 +83,14 @@ def main():
 
     # Doing stuff
     rdf_pairs = [('Ti', 'O'), ('Ti', 'Ti'), ('O', 'O')]
+    for i,(a, b) in enumerate(rdf_pairs):
+        print(f"{i}: {a}-{b}")
+    p_choices = [int(_c) for _c in (input("Enter choice: ")).strip().split()]
+    _r_p = []
+    for _c in p_choices:
+        _r_p.append(rdf_pairs[_c])
+    rdf_pairs = _r_p
+    print("Pairs: ", rdf_pairs)
     for A, B in rdf_pairs:
         for i, key in enumerate(queue):
             _db = queue[key]['db']
