@@ -88,7 +88,7 @@ def rdf_layer_corrected(atoms, A, B, r_max, bin_size=200):
     # Final calculation
     norm_density = norm_density_sum / len(A_indices)
     final_gr = np.mean(np.asarray(g_rs), axis=0) / norm_density
-    return np.stack((bins[:-1], final_gr), axis=1)
+    return np.stack((bins[:-1], final_gr), axis=1), norm_density
     
 
 def regular_rdf(atoms, A, B, r_max, bin_size=200):
@@ -124,22 +124,25 @@ def regular_rdf(atoms, A, B, r_max, bin_size=200):
     # Final calculation
     norm_density = norm_density_sum / len(A_indices)
     final_gr = np.mean(np.asarray(g_rs), axis=0) / norm_density
-    return np.stack((bins[:-1], final_gr), axis=1)
+    return np.stack((bins[:-1], final_gr), axis=1), norm_density
 
-def run(atoms, A, B, r_max, bin_size=200, regular_gr=False):
+def run(atoms, A, B, r_max, bin_size=200, regular_gr=False, norm_den=False):
     start_time = time.perf_counter()
     if regular_gr:
         print("Using regular RDF")
         print(f"PBC: {atoms.pbc}")
-        result = regular_rdf(atoms, A, B, r_max, bin_size)
+        result, norm = regular_rdf(atoms, A, B, r_max, bin_size)
     else:
         print("Using layer resolevd rdf")
-        result = rdf_layer_corrected(atoms, A, B, r_max, bin_size)
+        result, norm = rdf_layer_corrected(atoms, A, B, r_max, bin_size)
 
     end_time = time.perf_counter()
     execution_time = end_time - start_time
     print(f"Execution time for rdf: {execution_time:.6f} seconds")
 
-    return result
+    if norm_den:
+        return result, norm
+    else:
+        return result
     
 

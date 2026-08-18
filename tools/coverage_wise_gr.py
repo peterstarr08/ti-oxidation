@@ -4,10 +4,10 @@ from ase.io import write
 import numpy as np
 
 from ti_oxidation.rdf.rdf_optimized import run 
-from ti_oxidation.rdf.writer import write_rdf
+from ti_oxidation.rdf.writer import write_rdf_log
 
 def process_one_frame(frame, A, B, r_max, bin_size):
-	return run(frame, A, B, r_max, bin_size)
+	return run(frame, A, B, r_max, bin_size, norm_den=True)
 
 def start_rdf(frames, A, B, bin_size, r_max, cores):
 	with ProcessPoolExecutor(max_workers=cores) as pool:
@@ -22,12 +22,14 @@ def start_rdf(frames, A, B, bin_size, r_max, cores):
 		results = []
 		bins = None
 		failed = []
+		result_norm_den = 0
 		for i, f in enumerate(futures):
 			try:
-				res = f.result()
+				res, norm_den = f.result()
 				if bins is None:
 					bins = res[:,0]
 				results.append(res[:,1])
+				result_norm_den = result_norm_den + norm_den
 			except Exception as e:
 				print(f"Frame {i} failed: {e}")
 				failed.append(i)
@@ -35,7 +37,7 @@ def start_rdf(frames, A, B, bin_size, r_max, cores):
 			raise RuntimeError("All frames failed like my CGPA")
 		print(f"{len(results)}/{len(frames)} frames succeeded ({len(failed)} failed)")
 		avg_gr = np.mean(np.stack(results), axis=0)
-		return avg_gr, bins
+		return avg_gr, bins, result_norm_den/len(results), len(results)
 
 def main():
     path = Path(input("Enter path of pickle: ")).resolve()
@@ -91,7 +93,7 @@ def main():
                 continue
             out_path = path.parent /key /f"{A}_{B}_{_r_max}"
             out_path.mkdir(parents=True, exist_ok=True)
-            gr, bins = start_rdf(
+            gr, bins, norm_den, count = start_rdf(
                         _db,
                         A,
                         B,
@@ -99,7 +101,7 @@ def main():
                         r_max = _r_max,
                         cores = 9
                     )
-            write_rdf(out_path/"gr.csv", gr, bins)
+            write_rdf_log(out_path/"gr.csv", gr, bins, out_path/"log.txt", count, norm_den)
 
 
 
