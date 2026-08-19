@@ -91,6 +91,9 @@ def main():
         _r_p.append(rdf_pairs[_c])
     rdf_pairs = _r_p
     print("Pairs: ", rdf_pairs)
+
+    _bin_size = int(input("Enter bin size: "))
+    print("Using bin_size: ", _bin_size)
     for A, B in rdf_pairs:
         for i, key in enumerate(queue):
             _db = queue[key]['db']
@@ -105,7 +108,7 @@ def main():
                         _db,
                         A,
                         B,
-                        bin_size=1000,
+                        bin_size=_bin_size,
                         r_max = _r_max,
                         cores = 9
                     )
