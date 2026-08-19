@@ -109,7 +109,7 @@ def main():
                         r_max = _r_max,
                         cores = 9
                     )
-            write_rdf_log(out_path/"gr.csv", gr, bins, out_path/"log.txt", count, norm_den)
+            write_rdf_log(out_path/"gr.dat", gr, bins, out_path/"log.txt", count, norm_den)
 
 
 

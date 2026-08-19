@@ -1,5 +1,11 @@
 import io
 
+def write_rdf_xmgrace(file, grs, rdf_bins):
+    with open(file, mode='w') as f:
+        for r, gr in zip(rdf_bins, grs):
+            f.write(f'{r} {gr}\n')
+        print(f"Xmgrace file written to {file}")
+
 def write_rdf(file, grs, rdf_bins):
     with open(file, mode='w') as f:
         f.write('index,r,g(r)\n')
@@ -8,7 +14,7 @@ def write_rdf(file, grs, rdf_bins):
         print(f"File written to {file}")
 
 def write_rdf_log(file, grs, rdf_bins, file_log, size, local_density):
-    write_rdf(file, grs, rdf_bins)
+    write_rdf_xmgrace(file, grs, rdf_bins)
     with open(file_log, mode='w') as f:
         f.write(f"{size}\n{local_density}")
         print(f"Log file written to {file_log}")
