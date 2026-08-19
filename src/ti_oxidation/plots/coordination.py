@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+
 """
 Unified CLI for scientific plotting.
 Dispatch to different plot modules via subparsers.
@@ -6,7 +6,6 @@ Dispatch to different plot modules via subparsers.
 Usage:
   python plot.py gr [options] file1.csv file2.csv ...
   python plot.py md [options] log1 log2 ...
-  python plot.py coordination --density DENSITY [options] file1.dat ...
   python plot.py --help
 """
 import sys
@@ -15,7 +14,6 @@ import ti_oxidation.plots.gr as gr_plot
 import ti_oxidation.plots.md_log as md_plot
 import ti_oxidation.plots.md_fluct as md_fluct_plot
 import ti_oxidation.plots.md_lcurve as md_lcurve_plot
-import ti_oxidation.plots.coordination as coord_plot
 
 
 def create_gr_parser(subparsers):
@@ -200,51 +198,19 @@ def create_lcurve_parser(subparsers):
     lcurve_parser.set_defaults(func=md_lcurve_plot.run)
 
 
-def create_coordination_parser(subparsers):
-    """
-    Create and configure the 'coordination' subparser for coordination number integration.
-    """
-    coord_parser = subparsers.add_parser(
-        'coordination',
-        help='Compute coordination number from g(r) via integration',
-        description='Integrate g(r) to compute cumulative coordination number: CN(r) = ∫ 4π ρ r² g(r) dr'
-    )
-    coord_parser.add_argument(
-        'files',
-        nargs='+',
-        help='Input files (.dat xmgrace or .csv) containing r and g(r) data'
-    )
-    coord_parser.add_argument(
-        '--density',
-        type=float,
-        required=True,
-        metavar='DENSITY',
-        help='Normalization density (atoms/Å³) [REQUIRED]'
-    )
-    coord_parser.add_argument(
-        '-o', '--out-dir',
-        default='',
-        metavar='DIR',
-        help='Output directory (default: adjacent to source files)'
-    )
-    coord_parser.set_defaults(func=coord_plot.run)
-
-
 def main():
     """
     Main CLI entry point with subparsers.
     """
     parser = argparse.ArgumentParser(
         prog='plot',
-        description='Unified CLI for scientific plotting (g(r), MD logs, coordination numbers, etc.)',
+        description='Unified CLI for scientific plotting (g(r), MD logs, etc.)',
         epilog='Examples:\n'
                '  python plot.py gr data1.csv data2.csv\n'
                '  python plot.py md log1.txt log2.txt -i --out-dir plots_sim\n'
                '  python plot.py md --mark-temp 1000 --timestep 0.001 log.txt\n'
                '  python plot.py fluct log.txt --step-min 1000 --step-max 50000\n'
                '  python plot.py fluct log.txt -i --out-dir fluct_analysis\n'
-               '  python plot.py coordination --density 0.085 grdata.dat\n'
-               '  python plot.py coordination --density 0.085 -o ./cn_output file1.dat file2.dat\n'
                '  python plot.py lcurve lcurve.out\n'
                '  python plot.py lcurve --dir ./training --recursive --logx\n'
                '  python plot.py --help',
@@ -262,7 +228,6 @@ def main():
     create_md_parser(subparsers)
     create_fluct_parser(subparsers)
     create_lcurve_parser(subparsers)
-    create_coordination_parser(subparsers)
     # Future: create_rdf_parser(subparsers), create_msd_parser(subparsers), etc.
     
     args = parser.parse_args()
