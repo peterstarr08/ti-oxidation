@@ -177,7 +177,13 @@ def write_log(log_path, src_files, density, out_dir):
 
 def interactive_mode(r, cn, src_file, density):
     """
-    Interactive mode: plt.show() and query coordination numbers.
+    Interactive mode: menu-driven query system.
+    
+    Menu:
+    0 - Show plot (plt.show())
+    1 - Query r: given r, find coordination number from bin
+    2 - Query CN: given CN, find all bins and r range that contain it
+    q - Exit
     
     Args:
         r: radial distance array
@@ -188,46 +194,91 @@ def interactive_mode(r, cn, src_file, density):
     print(f"\n{'=' * 70}")
     print(f"Interactive Mode: {Path(src_file).name}")
     print(f"{'=' * 70}")
-    print(f"Type 'q' to exit, or enter an r value to query CN(r)")
-    print(f"r range: [{r[0]:.4f}, {r[-1]:.4f}] Å\n")
+    print(f"Data range: r ∈ [{r[0]:.4f}, {r[-1]:.4f}] Å, CN ∈ [{cn[0]:.6f}, {cn[-1]:.6f}]\n")
+    print("Menu:")
+    print("  0 - Show plot (plt.show())")
+    print("  1 - Query r: given r value, return CN from bin")
+    print("  2 - Query CN: given CN value, return r range")
+    print("  q - Exit\n")
     
-    # Show plot
-    fig, ax = plt.subplots(figsize=(8, 5.5))
-    ax.plot(r, cn, linewidth=1.5, color='#1f77b4', label='CN(r)')
-    ax.set_xlabel('r (Å)')
-    ax.set_ylabel('Coordination Number')
-    ax.set_title(f'Coordination Number (Interactive): {Path(src_file).stem}')
-    ax.grid(True, alpha=0.3, linestyle='--')
-    ax.legend(loc='best')
-    fig.tight_layout()
-    
-    plt.show()
-    
-    # Query loop
+    # Main query loop
     while True:
-        user_input = input("Enter r value or 'q' to exit: ").strip()
+        choice = input("Select option (0/1/2/q): ").strip().lower()
         
-        if user_input.lower() == 'q':
+        if choice == 'q':
             print("Exiting interactive mode.\n")
             break
         
-        try:
-            r_query = float(user_input)
-        except ValueError:
-            print("Invalid input. Please enter a number or 'q'.")
-            continue
+        if choice == '0':
+            # Show plot
+            print("  Opening plot window...\n")
+            fig, ax = plt.subplots(figsize=(8, 5.5))
+            ax.plot(r, cn, linewidth=1.5, color='#1f77b4', label='CN(r)')
+            ax.set_xlabel('r (Å)')
+            ax.set_ylabel('Coordination Number')
+            ax.set_title(f'Coordination Number (Interactive): {Path(src_file).stem}')
+            ax.grid(True, alpha=0.3, linestyle='--')
+            ax.legend(loc='best')
+            fig.tight_layout()
+            plt.show()
+            print()
         
-        # Find closest bin (no interpolation)
-        if r_query < r[0] or r_query > r[-1]:
-            print(f"  Error: r={r_query:.4f} is outside range [{r[0]:.4f}, {r[-1]:.4f}]")
-            continue
+        elif choice == '1':
+            # Query r: find CN at that r
+            try:
+                r_query = float(input("  Enter r value (Å): "))
+            except ValueError:
+                print("  Invalid input. Please enter a number.\n")
+                continue
+            
+            # Check range
+            if r_query < r[0] or r_query > r[-1]:
+                print(f"  Error: r={r_query:.4f} is outside range [{r[0]:.4f}, {r[-1]:.4f}]\n")
+                continue
+            
+            # Find closest bin (no interpolation)
+            idx = np.argmin(np.abs(r - r_query))
+            r_bin = r[idx]
+            cn_bin = cn[idx]
+            
+            print(f"  r_query={r_query:.4f} Å → nearest bin: r={r_bin:.4f} Å, CN={cn_bin:.6f}\n")
         
-        # Find index of closest r value
-        idx = np.argmin(np.abs(r - r_query))
-        r_bin = r[idx]
-        cn_bin = cn[idx]
+        elif choice == '2':
+            # Query CN: find all r bins with this CN value
+            try:
+                cn_query = float(input("  Enter CN value: "))
+            except ValueError:
+                print("  Invalid input. Please enter a number.\n")
+                continue
+            
+            # Check range
+            if cn_query < cn[0] or cn_query > cn[-1]:
+                print(f"  Error: CN={cn_query:.6f} is outside range [{cn[0]:.6f}, {cn[-1]:.6f}]\n")
+                continue
+            
+            # Find all bins where CN equals (or is closest to) this value
+            # Since CN is monotonically increasing, find the closest index
+            idx_closest = np.argmin(np.abs(cn - cn_query))
+            cn_bin = cn[idx_closest]
+            r_bin = r[idx_closest]
+            
+            # Find the bin range: left and right neighbors
+            # For closest match, show the bin it belongs to
+            if idx_closest == 0:
+                r_left = r[0]
+                r_right = r[1] if len(r) > 1 else r[0]
+            elif idx_closest == len(r) - 1:
+                r_left = r[-2] if len(r) > 1 else r[-1]
+                r_right = r[-1]
+            else:
+                r_left = r[idx_closest - 1]
+                r_right = r[idx_closest + 1]
+            
+            print(f"  CN_query={cn_query:.6f} → nearest bin: CN={cn_bin:.6f} at r={r_bin:.4f} Å")
+            print(f"             bin r range: [{r_left:.4f}, {r_right:.4f}] Å\n")
         
-        print(f"  r_query={r_query:.4f} Å → nearest bin: r={r_bin:.4f} Å, CN={cn_bin:.6f}")
+        else:
+            print("  Invalid option. Please enter 0, 1, 2, or q.\n")
 
 
 def run(args):
