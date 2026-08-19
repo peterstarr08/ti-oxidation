@@ -175,6 +175,61 @@ def write_log(log_path, src_files, density, out_dir):
     print(f"  Log saved: {log_path}")
 
 
+def interactive_mode(r, cn, src_file, density):
+    """
+    Interactive mode: plt.show() and query coordination numbers.
+    
+    Args:
+        r: radial distance array
+        cn: coordination number array
+        src_file: source filename
+        density: normalization density
+    """
+    print(f"\n{'=' * 70}")
+    print(f"Interactive Mode: {Path(src_file).name}")
+    print(f"{'=' * 70}")
+    print(f"Type 'q' to exit, or enter an r value to query CN(r)")
+    print(f"r range: [{r[0]:.4f}, {r[-1]:.4f}] Å\n")
+    
+    # Show plot
+    fig, ax = plt.subplots(figsize=(8, 5.5))
+    ax.plot(r, cn, linewidth=1.5, color='#1f77b4', label='CN(r)')
+    ax.set_xlabel('r (Å)')
+    ax.set_ylabel('Coordination Number')
+    ax.set_title(f'Coordination Number (Interactive): {Path(src_file).stem}')
+    ax.grid(True, alpha=0.3, linestyle='--')
+    ax.legend(loc='best')
+    fig.tight_layout()
+    
+    plt.show()
+    
+    # Query loop
+    while True:
+        user_input = input("Enter r value or 'q' to exit: ").strip()
+        
+        if user_input.lower() == 'q':
+            print("Exiting interactive mode.\n")
+            break
+        
+        try:
+            r_query = float(user_input)
+        except ValueError:
+            print("Invalid input. Please enter a number or 'q'.")
+            continue
+        
+        # Find closest bin (no interpolation)
+        if r_query < r[0] or r_query > r[-1]:
+            print(f"  Error: r={r_query:.4f} is outside range [{r[0]:.4f}, {r[-1]:.4f}]")
+            continue
+        
+        # Find index of closest r value
+        idx = np.argmin(np.abs(r - r_query))
+        r_bin = r[idx]
+        cn_bin = cn[idx]
+        
+        print(f"  r_query={r_query:.4f} Å → nearest bin: r={r_bin:.4f} Å, CN={cn_bin:.6f}")
+
+
 def run(args):
     """
     Main entry point for coordination number analysis.
@@ -184,6 +239,7 @@ def run(args):
               - files: list of input .dat/.csv files
               - density: normalization density (required)
               - out_dir: output directory (default: adjacent to first input)
+              - interactive: boolean flag for interactive mode
     """
     report_style()
     
@@ -192,6 +248,7 @@ def run(args):
         sys.exit(1)
     
     density = args.density
+    interactive = getattr(args, 'interactive', False)
     
     # Determine output directory
     if args.out_dir:
@@ -206,7 +263,10 @@ def run(args):
     print(f"Coordination Number Integration")
     print(f"{'=' * 70}")
     print(f"Density: {density:.10e} atoms/Å³")
-    print(f"Output: {out_dir}\n")
+    print(f"Output: {out_dir}")
+    if interactive:
+        print("Mode: INTERACTIVE (with plt.show() and CN query)")
+    print()
     
     # Process each file
     for src_file in args.files:
@@ -228,8 +288,12 @@ def run(args):
         png_out = out_dir / f"{stem}_coordination.png"
         npz_out = out_dir / f"{stem}_coordination.npz"
         
-        # Plot
-        plot_coordination(r, cn, src_file, density, png_out)
+        if interactive:
+            # Show plot and allow CN queries
+            interactive_mode(r, cn, src_file, density)
+        else:
+            # Plot to file only
+            plot_coordination(r, cn, src_file, density, png_out)
         
         # Save data
         save_data(r, gr, cn, npz_out)

@@ -227,6 +227,11 @@ def create_coordination_parser(subparsers):
         metavar='DIR',
         help='Output directory (default: adjacent to source files)'
     )
+    coord_parser.add_argument(
+        '-i', '--interactive',
+        action='store_true',
+        help='Interactive mode: plt.show() and query coordination numbers (default: off)'
+    )
     coord_parser.set_defaults(func=coord_plot.run)
 
 
@@ -244,6 +249,7 @@ def main():
                '  python plot.py fluct log.txt --step-min 1000 --step-max 50000\n'
                '  python plot.py fluct log.txt -i --out-dir fluct_analysis\n'
                '  python plot.py coordination --density 0.085 grdata.dat\n'
+               '  python plot.py coordination --density 0.085 -i file1.dat file2.dat\n'
                '  python plot.py coordination --density 0.085 -o ./cn_output file1.dat file2.dat\n'
                '  python plot.py lcurve lcurve.out\n'
                '  python plot.py lcurve --dir ./training --recursive --logx\n'
