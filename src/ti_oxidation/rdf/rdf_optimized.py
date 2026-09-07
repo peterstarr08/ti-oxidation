@@ -10,7 +10,6 @@ def print_info(atoms, A, B, r_max, dr, bins, bin_size, method):
     print(f"Length {len(atoms)} {A}-{B} pair method {method}")
     print(f"Cell {np.diag(atoms.get_cell())} PBC {atoms.pbc}")
     print(f"Bin size {bin_size} r_max {r_max} dr {dr}")
-    print(f"{bins}")
 
 def gen_nl(atoms, cutoff):
     _nl = neighbor_list('ijd', a=atoms, cutoff=cutoff, self_interaction=False)

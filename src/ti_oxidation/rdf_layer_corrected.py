@@ -7,7 +7,7 @@ from ase import Atoms
 import argparse
 
 from ti_oxidation.rdf.rdf_multicore import rdf_frames
-from ti_oxidation.rdf.writer import write_rdf
+from ti_oxidation.rdf.writer import write_rdf_log
 
 def main():
 
@@ -34,11 +34,13 @@ def main():
     print(f"Read {len(db)} frames")
     
     input_path = Path(args.path).resolve()
-    out_path = input_path.parents[0] / f'{args.out}.csv'
+    out_path = input_path.parents[0] / f'{args.out}.dat'
+    log_path = input_path.parents[0] / f'{args.out}.log'
     
-    rdf, bins = rdf_frames(db, args.A, args.B, args.nbins, args.cores, args.debug_dir, args.regular_gr, args.use_slab_height, args.r_max)
+    rdf, bins, avg_norm_den, count = rdf_frames(db, args.A, args.B, args.nbins, args.cores, args.debug_dir, args.regular_gr, args.use_slab_height, args.r_max)
 
-    write_rdf(out_path, rdf, bins) 
+    # write_rdf(out_path, rdf, bins) 
+    write_rdf_log(out_path, rdf, bins, log_path, count, avg_norm_den)
 
 
     

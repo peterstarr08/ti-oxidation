@@ -44,8 +44,9 @@ def process_one_frame(index, frame, A, B, bin_size, save_dir, regular_gr=False, 
     else:
         _r_max = r_max
         print(f"r_max = {_r_max}")
-
-    return run(frame, A, B, _r_max, bin_size, regular_gr)
+    
+    result_gr, result_norm = run(frame, A, B, _r_max, bin_size, regular_gr, norm_den=True)
+    return  result_gr, result_norm
 
 def rdf_frames(frames, A, B, bin_size, ncores, save_dir = None, regular_gr=False, use_slab_height=False, r_max=-1):
     with ProcessPoolExecutor(max_workers=ncores) as pool:
@@ -62,14 +63,16 @@ def rdf_frames(frames, A, B, bin_size, ncores, save_dir = None, regular_gr=False
             r_max=r_max
             ) for i, frame in enumerate(frames)]
         results = []
+        norm_den_sum = 0.0
         bins = None
         failed = []
         for i, f in enumerate(futures):
             try:
-                res = f.result()
+                res, norm_den = f.result()
                 if bins is None:
                     bins = res[:,0]
                 results.append(res[:,1])
+                norm_den_sum = norm_den_sum + norm_den
             except Exception as e:
                 print(f"Frame {i} failed: {e}")
                 failed.append(i)
@@ -80,4 +83,4 @@ def rdf_frames(frames, A, B, bin_size, ncores, save_dir = None, regular_gr=False
         print(f"{len(results)}/{len(frames)} frames succeeded ({len(failed)} failed)")
         avg_gr = np.mean(np.stack(results), axis=0)
 
-        return avg_gr, bins 
+        return avg_gr, bins, norm_den_sum/len(results), len(results)
