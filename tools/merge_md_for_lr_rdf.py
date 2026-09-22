@@ -34,7 +34,7 @@ from tqdm import tqdm
 
 # --- unchanged imports from the existing codebase ---
 from ti_oxidation.clustering.cluster_layer import detect_layers
-
+from ti_oxidation.clustering.hard_coded_layer import hc_layers
 
 # ============================================================
 # Original helpers, reproduced verbatim (NOT modified) so this
@@ -45,7 +45,10 @@ from ti_oxidation.clustering.cluster_layer import detect_layers
 def delete_layers(db, layers_from_bottom):
     print("Deleting those damm layers...")
     print("Using first frame to detect layer...")
-    layers = detect_layers(db[0])
+
+    # layers = detect_layers(db[0])
+    layers = hc_layers
+
     print(f"  Layers count {len(layers)}")
     layers_to_del = np.concatenate(layers[:layers_from_bottom])
     print(f"  Will delete {layers_from_bottom}")

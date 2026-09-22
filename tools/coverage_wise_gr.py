@@ -110,7 +110,7 @@ def main():
                         B,
                         bin_size=_bin_size,
                         r_max = _r_max,
-                        cores = 9
+                        cores = 12
                     )
             write_rdf_log(out_path/"gr.dat", gr, bins, out_path/"log.txt", count, norm_den)
 
