@@ -7,6 +7,7 @@ Usage:
   python plot.py gr [options] file1.csv file2.csv ...
   python plot.py md [options] log1 log2 ...
   python plot.py coordination --density DENSITY [options] file1.dat ...
+  python plot.py stoic [options] layer_data1.npz layer_data2.npz ...
   python plot.py --help
 """
 import sys
@@ -16,6 +17,7 @@ import ti_oxidation.plots.md_log as md_plot
 import ti_oxidation.plots.md_fluct as md_fluct_plot
 import ti_oxidation.plots.md_lcurve as md_lcurve_plot
 import ti_oxidation.plots.coordination as coord_plot
+import ti_oxidation.plots.stoichiometry as stoic_plot
 
 
 def create_gr_parser(subparsers):
@@ -235,6 +237,70 @@ def create_coordination_parser(subparsers):
     coord_parser.set_defaults(func=coord_plot.run)
 
 
+def create_stoic_parser(subparsers):
+    """
+    Create and configure the 'stoic' subparser for Ti-O sandwich stoichiometry plots.
+    """
+    stoic_parser = subparsers.add_parser(
+        'stoic',
+        help='Plot O/Ti sandwich ratios per frame from layer_data.npz',
+        description='For each frame, find O layers sandwiched between two Ti layers and plot '
+                     '(O atoms in that layer) / (Ti atoms in the bottom bounding layer) vs frame, '
+                     'one line per Ti-Ti pair, plus a time-averaged summary plot.'
+    )
+    stoic_parser.add_argument(
+        'files',
+        nargs='+',
+        help='layer_data.npz files (from trajectory_layer_clustering) to plot'
+    )
+    stoic_parser.add_argument(
+        '--out-dir',
+        default='plots_stoic',
+        metavar='DIR',
+        help='Output directory for plots (default: plots_stoic)'
+    )
+    stoic_parser.add_argument(
+        '--expected-n-ti',
+        type=int,
+        default=None,
+        metavar='N',
+        dest='expected_n_ti',
+        help='Expected number of Ti layers per frame; frames that detect a different count '
+             'are dropped as outliers. Overrides auto-detection for this count if given '
+             '(default: auto-detect from the majority shape across frames)'
+    )
+    stoic_parser.add_argument(
+        '--expected-n-o-groups',
+        type=int,
+        default=None,
+        metavar='N',
+        dest='expected_n_o_groups',
+        help='Expected number of O-sandwich groups per frame (consecutive O layers between '
+             'two Ti layers, or above the topmost Ti layer, count as one group); frames that '
+             'detect a different count are dropped as outliers. Overrides auto-detection for '
+             'this count if given (default: auto-detect from the majority shape across frames)'
+    )
+    stoic_parser.add_argument(
+        '--auto-threshold',
+        type=float,
+        default=0.9,
+        metavar='FRACTION',
+        dest='auto_threshold',
+        help='Minimum fraction of frames that must share the same (n_ti, n_o_groups) shape '
+             'for auto-detection to accept it as the expected shape; otherwise the run aborts '
+             'with an error (default: 0.9). Only used for whichever of --expected-n-ti / '
+             '--expected-n-o-groups is not given manually'
+    )
+    stoic_parser.add_argument(
+        '--no-filter',
+        action='store_true',
+        dest='no_filter',
+        help='Disable outlier filtering entirely (no auto-detection, no manual expected '
+             'counts): plot every frame as-is, same as before auto-detection existed'
+    )
+    stoic_parser.set_defaults(func=stoic_plot.run)
+
+
 def main():
     """
     Main CLI entry point with subparsers.
@@ -253,6 +319,12 @@ def main():
                '  python plot.py coordination --density 0.085 -o ./cn_output file1.dat file2.dat\n'
                '  python plot.py lcurve lcurve.out\n'
                '  python plot.py lcurve --dir ./training --recursive --logx\n'
+               '  python plot.py stoic layer_data.npz --out-dir plots_stoic\n'
+               '  python plot.py stoic layer_data.npz  # auto-detects expected shape\n'
+               '  python plot.py stoic layer_data.npz --expected-n-ti 4  # o-groups still auto\n'
+               '  python plot.py stoic layer_data.npz --expected-n-ti 4 --expected-n-o-groups 8\n'
+               '  python plot.py stoic layer_data.npz --auto-threshold 0.8\n'
+               '  python plot.py stoic layer_data.npz --no-filter\n'
                '  python plot.py --help',
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
@@ -262,24 +334,25 @@ def main():
         dest='command',
         required=True
     )
-    
+
     # Register subcommands
     create_gr_parser(subparsers)
     create_md_parser(subparsers)
     create_fluct_parser(subparsers)
     create_lcurve_parser(subparsers)
     create_coordination_parser(subparsers)
+    create_stoic_parser(subparsers)
     # Future: create_rdf_parser(subparsers), create_msd_parser(subparsers), etc.
-    
+
     args = parser.parse_args()
-    
+
     # Validate args (gr-specific)
     if hasattr(args, 'precision'):
         if args.precision < 0 or args.precision > 10:
             parser.error("Precision must be between 0 and 10")
         if args.no_individual and args.no_comparison:
             parser.error("Cannot skip both individual and comparison plots")
-    
+
     # Dispatch to the appropriate module's run function
     try:
         args.func(args)

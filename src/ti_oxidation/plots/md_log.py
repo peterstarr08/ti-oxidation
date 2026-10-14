@@ -135,7 +135,7 @@ def plot_individual(steps, poteng, poteng_pa, temperature, output_dir, label, ti
     # Potential Energy
     fig, ax = plt.subplots(figsize=(8, 6))
     ax.plot(time_ps, poteng, linewidth=1.5)
-    ax.set_xlabel("Time (ps)")
+    ax.set_xlabel("Time (steps)")
     ax.set_ylabel("Potential Energy (eV)")
     plt.tight_layout()
     out_file = os.path.join(output_dir, f"{label}_poteng.png")
@@ -146,7 +146,7 @@ def plot_individual(steps, poteng, poteng_pa, temperature, output_dir, label, ti
     # Potential Energy per Atom
     fig, ax = plt.subplots(figsize=(8, 6))
     ax.plot(time_ps, poteng_pa, linewidth=1.5)
-    ax.set_xlabel("Time (ps)")
+    ax.set_xlabel("Time (steps)")
     ax.set_ylabel("Potential Energy per Atom (eV/atom)")
     plt.tight_layout()
     out_file = os.path.join(output_dir, f"{label}_poteng_pa.png")
@@ -158,7 +158,7 @@ def plot_individual(steps, poteng, poteng_pa, temperature, output_dir, label, ti
     fig, ax = plt.subplots(figsize=(8, 6))
     ax.plot(time_ps, temperature, linewidth=1.5)
     ax.axhline(y=mark_temp, color='r', linestyle='--', linewidth=1.5, label=f'{mark_temp} K')
-    ax.set_xlabel("Time (ps)")
+    ax.set_xlabel("Time (steps)")
     ax.set_ylabel("Temperature (K)")
     ax.legend()
     plt.tight_layout()
@@ -187,7 +187,7 @@ def plot_combined_per_file(steps, poteng, poteng_pa, temperature, output_dir, la
     
     axs[2].plot(time_ps, temperature, linewidth=1.5)
     axs[2].axhline(y=mark_temp, color='r', linestyle='--', linewidth=1.5, label=f'{mark_temp} K')
-    axs[2].set_xlabel("Time (ps)")
+    axs[2].set_xlabel("Time (steps)")
     axs[2].set_ylabel("Temperature (K)")
     axs[2].legend()
     
@@ -236,7 +236,7 @@ def plot_all_combined(all_data, output_dir, timestep_ps, mark_temp, subplot_titl
         axs[2].plot(time_ps, temperature, label=label, linewidth=1.5)
     
     axs[2].axhline(y=mark_temp, color='r', linestyle='--', linewidth=1.5, label=f'{mark_temp} K')
-    axs[2].set_xlabel("Time (ps)")
+    axs[2].set_xlabel("Time (steps)")
     axs[2].set_ylabel("Temperature (K)")
     if subplot_titles and subplot_titles.get('temperature'):
         axs[2].set_title(subplot_titles['temperature'])
@@ -255,7 +255,7 @@ def plot_all_combined(all_data, output_dir, timestep_ps, mark_temp, subplot_titl
         time_ps = [s * timestep_ps for s in steps]
         ax.plot(time_ps, poteng, label=label, linewidth=1.5)
     
-    ax.set_xlabel("Time (ps)")
+    ax.set_xlabel("Time (steps)")
     ax.set_ylabel("Potential Energy (eV)")
     if subplot_titles and subplot_titles.get('poteng'):
         ax.set_title(subplot_titles['poteng'])
@@ -272,7 +272,7 @@ def plot_all_combined(all_data, output_dir, timestep_ps, mark_temp, subplot_titl
         time_ps = [s * timestep_ps for s in steps]
         ax.plot(time_ps, poteng_pa, label=label, linewidth=1.5)
     
-    ax.set_xlabel("Time (ps)")
+    ax.set_xlabel("Time (steps)")
     ax.set_ylabel("Potential Energy per Atom (eV/atom)")
     if subplot_titles and subplot_titles.get('poteng_pa'):
         ax.set_title(subplot_titles['poteng_pa'])
@@ -290,7 +290,7 @@ def plot_all_combined(all_data, output_dir, timestep_ps, mark_temp, subplot_titl
         ax.plot(time_ps, temperature, label=label, linewidth=1.5)
     
     ax.axhline(y=mark_temp, color='r', linestyle='--', linewidth=1.5, label=f'{mark_temp} K')
-    ax.set_xlabel("Time (ps)")
+    ax.set_xlabel("Time (steps)")
     ax.set_ylabel("Temperature (K)")
     if subplot_titles and subplot_titles.get('temperature'):
         ax.set_title(subplot_titles['temperature'])
