@@ -10,12 +10,12 @@ def delete_layers(layers, atoms):
     del atoms[np.concatenate(layers)]
 
 def process_one_frame(index, frame, A, B, bin_size, save_dir, regular_gr=False, use_slab_height=False, r_max=-1):
-    if not regular_gr:
-        print("Deleting bottom 13 layers")
-        layers = detect_layers(frame)
-        delete_layers(layers[:13], frame)
-    else:
-        print("Sparring bottom layers. Nothing was deleted!")
+    # if not regular_gr:
+    #    print("Deleting bottom 13 layers")
+    #    layers = detect_layers(frame)
+    #    delete_layers(layers[:13], frame)
+    #else:
+    #    print("Sparring bottom layers. Nothing was deleted!")
 
     if save_dir:
         path = Path(save_dir)

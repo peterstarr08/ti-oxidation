@@ -20,6 +20,14 @@ def get_slab_stat(atoms):
     slab_h = max_h - min_h
     return max_h, min_h, slab_h
 
+def get_slab_volume(atoms):
+    a, b, c = atoms.get_cell()
+    area = np.linalg.norm(np.cross(a,b))
+
+    _, _, h = get_slab_stat(atoms)
+
+    return area*h
+
 def process_atom(pair_dist, bins, z_top, slab_height):
     hist,_ = np.histogram(pair_dist, bins)
     total_pairs = np.sum(hist)
@@ -50,7 +58,7 @@ def process_atom_regular_gr(pair_dist, bins):
 
     return g_r, local_density
 
-def rdf_layer_corrected(atoms, A, B, r_max, bin_size=200):
+def rdf_layer_corrected(atoms, A, B, r_max, bin_size=200, norm_method="volume"):
     # Preprocessing
     atoms.wrap()
     atoms.pbc = [True, True, False]
@@ -82,6 +90,9 @@ def rdf_layer_corrected(atoms, A, B, r_max, bin_size=200):
         pair_dist = nl_AB[a_index_nl][:,2]
         g_r, local_density = process_atom(pair_dist, bins, z, slab_h)
         g_rs.append(g_r)
+        if norm_method=="volume":
+            local_density = len(symbols[symbols==B])/get_slab_volume(atoms)
+            print(f"Used slab volume: {local_density}")
         norm_density_sum += local_density
     
     # Final calculation
